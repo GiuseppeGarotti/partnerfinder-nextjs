@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import clientPromise from "@/lib/mongodb";
-import { inviaEmailOtp } from "@/lib/email";
+// import { inviaEmailOtp } from "@/lib/email"; // riattiveremo con Resend
 
 export async function POST(request) {
   try {
@@ -39,36 +39,19 @@ export async function POST(request) {
       email,
       password: passwordHash,
       provider: "credentials",
-      emailVerificato: false,
       createdAt: new Date(),
     });
 
-    const codice = Math.floor(100000 + Math.random() * 900000).toString();
-
-    await db.collection("otp").updateOne(
-      { email },
-      {
-        $set: {
-          email,
-          codice,
-          scadenza: new Date(Date.now() + 10 * 60 * 1000),
-        },
-      },
-      { upsert: true }
-    );
-
-    try {
-      await inviaEmailOtp(email, codice);
-    } catch (emailError) {
-      console.error("Errore invio email:", emailError);
-      return Response.json(
-        {
-          error:
-            "Account creato ma l'invio dell'email non è riuscito. Contatta il supporto.",
-        },
-        { status: 500 }
-      );
-    }
+    // Verifica email OTP temporaneamente disattivata - la riattiveremo
+    // con Resend più avanti. Il codice resta pronto sotto, commentato.
+    //
+    // const codice = Math.floor(100000 + Math.random() * 900000).toString();
+    // await db.collection("otp").updateOne(
+    //   { email },
+    //   { $set: { email, codice, scadenza: new Date(Date.now() + 10 * 60 * 1000) } },
+    //   { upsert: true }
+    // );
+    // await inviaEmailOtp(email, codice);
 
     return Response.json({ success: true, email });
   } catch (error) {

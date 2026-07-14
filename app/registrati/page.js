@@ -34,8 +34,20 @@ export default function Registrati() {
         return;
       }
 
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
       setCaricando(false);
-      router.push(`/verifica-email?email=${encodeURIComponent(email)}`);
+
+      if (result?.error) {
+        router.push("/login");
+      } else {
+        router.push("/");
+        router.refresh();
+      }
     } catch (err) {
       setErrore("Errore di connessione. Riprova.");
       setCaricando(false);
