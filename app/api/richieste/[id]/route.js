@@ -2,6 +2,48 @@ import { auth } from "@/lib/auth";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 
+export async function GET(request, { params }) {
+  const session = await auth();
+  if (!session) {
+    return Response.json({ error: "Non autenticato" }, { status: 401 });
+  }
+
+  const { id } = await params;
+  const client = await clientPromise;
+  const db = client.db("test_database");
+
+  const richiesta = await db
+    .collection("richieste")
+    .findOne({ _id: new ObjectId(id) });
+
+  if (!richiesta) {
+    return Response.json({ error: "Richiesta non trovata" }, { status: 404 });
+  }
+
+  const isSponsor = richiesta.sponsorId.toString() === session.user.id;
+  const isSponsee = richiesta.sponseeId.toString() === session.user.id;
+
+  if (!isSponsor && !isSponsee) {
+    return Response.json({ error: "Accesso negato" }, { status: 403 });
+  }
+
+  // Se l'utente è lo sponsor, includiamo anche le tipologie che offre
+  let tipologieSponsorizzazione = [];
+  if (isSponsor) {
+    const sponsor = await db
+      .collection("users")
+      .findOne({ _id: richiesta.sponsorId });
+    tipologieSponsorizzazione = sponsor?.tipologieSponsorizzazione || [];
+  } else {
+    const sponsor = await db
+      .collection("users")
+      .findOne({ _id: richiesta.sponsorId });
+    tipologieSponsorizzazione = sponsor?.tipologieSponsorizzazione || [];
+  }
+
+  return Response.json({ richiesta, tipologieSponsorizzazione });
+}
+
 export async function PATCH(request, { params }) {
   const session = await auth();
   if (!session || session.user.tipo !== "sponsor") {

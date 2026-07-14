@@ -41,6 +41,7 @@ export async function PATCH(request) {
     "budget",
     "sede",
     "interessi",
+    "tipologieSponsorizzazione",
   ];
 
   const update = {};

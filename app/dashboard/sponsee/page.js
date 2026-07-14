@@ -210,16 +210,18 @@ export default function DashboardSponsee() {
                     {r.stato}
                   </span>
                 </div>
-                <p className="text-white/50 text-sm">{r.messaggio}</p>
+                <p className="text-white/50 text-sm mb-3">{r.messaggio}</p>
+                <Link
+                  href={`/chat/${r._id}`}
+                  className="block text-center border border-white/20 hover:border-white py-2 rounded-lg text-sm font-semibold transition"
+                >
+                  💬 Chat
+                </Link>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="bg-[#141d29] border border-white/10 rounded-xl p-5 opacity-50">
-          <p className="font-semibold mb-1">Messaggi</p>
-          <p className="text-white/40 text-sm">Presto disponibile</p>
-        </div>
       </div>
     </main>
   );

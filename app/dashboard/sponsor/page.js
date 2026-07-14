@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Navbar from "../../components/Navbar";
 import CustomSelect from "../../components/CustomSelect";
+import Link from "next/link";
 
 export default function DashboardSponsor() {
   const { data: session, status } = useSession();
@@ -222,6 +223,51 @@ export default function DashboardSponsor() {
               />
             </div>
 
+            <div>
+              <label className="block text-sm mb-3 text-white/70">
+                Cosa offri in cambio della sponsorizzazione?
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  "Cartelloni",
+                  "Maglie",
+                  "Video social",
+                  "Post Instagram",
+                  "Banner digitali",
+                  "Menzione eventi",
+                ].map((opzione) => {
+                  const selezionata = (
+                    profilo?.tipologieSponsorizzazione || []
+                  ).includes(opzione);
+                  return (
+                    <button
+                      type="button"
+                      key={opzione}
+                      onClick={() => {
+                        const attuali =
+                          profilo?.tipologieSponsorizzazione || [];
+                        const nuove = selezionata
+                          ? attuali.filter((o) => o !== opzione)
+                          : [...attuali, opzione];
+                        setProfilo({
+                          ...profilo,
+                          tipologieSponsorizzazione: nuove,
+                        });
+                      }}
+                      className={`px-3 py-2 rounded-lg text-sm border transition text-left ${
+                        selezionata
+                          ? "border-[#f4520a] bg-[#f4520a]/10 text-[#f4520a] font-semibold"
+                          : "border-white/20 text-white/60"
+                      }`}
+                    >
+                      {selezionata ? "✓ " : ""}
+                      {opzione}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <button
               type="submit"
               disabled={salvando}
@@ -264,31 +310,35 @@ export default function DashboardSponsor() {
                   </span>
                 </div>
                 <p className="text-white/50 text-sm mb-3">{r.messaggio}</p>
-                {r.stato === "in attesa" && (
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => gestisciRichiesta(r._id, "approvata")}
-                      className="flex-1 bg-green-500/10 hover:bg-green-500/20 text-green-400 py-2 rounded-lg text-sm font-semibold transition"
-                    >
-                      Approva
-                    </button>
-                    <button
-                      onClick={() => gestisciRichiesta(r._id, "rifiutata")}
-                      className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 py-2 rounded-lg text-sm font-semibold transition"
-                    >
-                      Rifiuta
-                    </button>
-                  </div>
-                )}
+                <div className="flex gap-2">
+                  {r.stato === "in attesa" && (
+                    <>
+                      <button
+                        onClick={() => gestisciRichiesta(r._id, "approvata")}
+                        className="flex-1 bg-green-500/10 hover:bg-green-500/20 text-green-400 py-2 rounded-lg text-sm font-semibold transition"
+                      >
+                        Approva
+                      </button>
+                      <button
+                        onClick={() => gestisciRichiesta(r._id, "rifiutata")}
+                        className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 py-2 rounded-lg text-sm font-semibold transition"
+                      >
+                        Rifiuta
+                      </button>
+                    </>
+                  )}
+                  <Link
+                    href={`/chat/${r._id}`}
+                    className="flex-1 text-center border border-white/20 hover:border-white py-2 rounded-lg text-sm font-semibold transition"
+                  >
+                    💬 Chat
+                  </Link>
+                </div>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="bg-[#141d29] border border-white/10 rounded-xl p-5 opacity-50">
-          <p className="font-semibold mb-1">Messaggi</p>
-          <p className="text-white/40 text-sm">Presto disponibile</p>
-        </div>
       </div>
     </main>
   );
