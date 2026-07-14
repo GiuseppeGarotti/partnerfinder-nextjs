@@ -122,7 +122,8 @@ export default function DashboardSponsee() {
                 onChange={(e) =>
                   setProfilo({ ...profilo, categoria: e.target.value })
                 }
-                className="w-full bg-white/5 border border-white/20 rounded-lg px-4 py-3 focus:outline-none focus:border-[#f4520a]"
+                style={{ colorScheme: "dark" }}
+                className="w-full bg-white/5 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#f4520a]"
               >
                 <option value="">Seleziona categoria</option>
                 <option value="tecnologia">Tecnologia</option>
