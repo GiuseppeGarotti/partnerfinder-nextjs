@@ -1,20 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-export default function Login() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const appenaVerificato = searchParams.get("verificato") === "1";
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errore, setErrore] = useState("");
+  const [nonVerificato, setNonVerificato] = useState(false);
   const [caricando, setCaricando] = useState(false);
+  const [rinviato, setRinviato] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setErrore("");
+    setNonVerificato(false);
     setCaricando(true);
 
     const result = await signIn("credentials", {
@@ -23,14 +29,35 @@ export default function Login() {
       redirect: false,
     });
 
-    setCaricando(false);
-
     if (result?.error) {
-      setErrore("Email o password non corrette.");
+      // Controlliamo se il motivo è l'email non verificata
+      const stato = await fetch("/api/auth/verifica-stato", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      }).then((r) => r.json());
+
+      setCaricando(false);
+
+      if (stato.emailVerificato === false) {
+        setNonVerificato(true);
+      } else {
+        setErrore("Email o password non corrette.");
+      }
     } else {
+      setCaricando(false);
       router.push("/");
       router.refresh();
     }
+  }
+
+  async function rinviaCodice() {
+    await fetch("/api/auth/invia-otp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    setRinviato(true);
   }
 
   return (
@@ -48,9 +75,39 @@ export default function Login() {
           </Link>
         </p>
 
+        {appenaVerificato && (
+          <div className="bg-green-500/10 border border-green-500/30 text-green-400 px-4 py-3 rounded-lg mb-6 text-base">
+            Email verificata! Ora puoi accedere.
+          </div>
+        )}
+
         {errore && (
           <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg mb-6 text-base">
             {errore}
+          </div>
+        )}
+
+        {nonVerificato && (
+          <div className="bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 px-4 py-3 rounded-lg mb-6 text-base">
+            La tua email non è ancora verificata.{" "}
+            {rinviato ? (
+              <span>Nuovo codice inviato, controlla la posta.</span>
+            ) : (
+              <button
+                onClick={rinviaCodice}
+                className="underline font-semibold"
+              >
+                Invia il codice
+              </button>
+            )}{" "}
+            e poi{" "}
+            <Link
+              href={`/verifica-email?email=${encodeURIComponent(email)}`}
+              className="underline font-semibold"
+            >
+              verificalo qui
+            </Link>
+            .
           </div>
         )}
 
@@ -122,5 +179,13 @@ export default function Login() {
         </button>
       </div>
     </main>
+  );
+}
+
+export default function Login() {
+  return (
+    <Suspense fallback={null}>
+      <LoginContent />
+    </Suspense>
   );
 }
