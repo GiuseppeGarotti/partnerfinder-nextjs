@@ -40,7 +40,7 @@ export default function CustomSelect({ value, onChange, options, placeholder }) 
         </svg>
       </button>
       {aperto && (
-        <div className="absolute z-20 mt-2 w-full bg-[#1a2535] border border-white/10 rounded-lg shadow-xl max-h-60 overflow-auto">
+        <div className="custom-scroll absolute z-20 mt-2 w-full bg-[#1a2535] border border-white/10 rounded-lg shadow-xl max-h-60 overflow-auto">
           {options.map((o) => (
             <button
               type="button"
