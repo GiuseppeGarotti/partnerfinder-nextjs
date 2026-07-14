@@ -11,6 +11,7 @@ export default function DashboardSponsee() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [profilo, setProfilo] = useState(null);
+  const [richieste, setRichieste] = useState([]);
   const [caricando, setCaricando] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [salvato, setSalvato] = useState(false);
@@ -33,6 +34,9 @@ export default function DashboardSponsee() {
           setProfilo(data.user);
           setCaricando(false);
         });
+      fetch("/api/richieste")
+        .then((r) => r.json())
+        .then((data) => setRichieste(data.richieste || []));
     }
   }, [status, session, router]);
 
@@ -175,16 +179,46 @@ export default function DashboardSponsee() {
           </form>
         </div>
 
-        {/* Prossime funzionalità */}
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div className="bg-[#141d29] border border-white/10 rounded-xl p-5 opacity-50">
-            <p className="font-semibold mb-1">Richieste inviate</p>
-            <p className="text-white/40 text-sm">Presto disponibile</p>
+        {/* Richieste inviate */}
+        <div className="bg-[#141d29] border border-white/10 rounded-xl p-6 mb-4">
+          <h2 className="font-bold text-lg mb-4">Richieste inviate</h2>
+          {richieste.length === 0 && (
+            <p className="text-white/40 text-sm">
+              Non hai ancora inviato richieste.{" "}
+              <Link href="/esplora" className="text-[#f4520a] hover:underline">
+                Esplora gli sponsor
+              </Link>
+            </p>
+          )}
+          <div className="space-y-3">
+            {richieste.map((r) => (
+              <div
+                key={r._id}
+                className="border border-white/10 rounded-lg p-4"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-semibold">{r.sponsorNome}</span>
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full capitalize ${
+                      r.stato === "approvata"
+                        ? "bg-green-500/10 text-green-400"
+                        : r.stato === "rifiutata"
+                        ? "bg-red-500/10 text-red-400"
+                        : "bg-yellow-500/10 text-yellow-400"
+                    }`}
+                  >
+                    {r.stato}
+                  </span>
+                </div>
+                <p className="text-white/50 text-sm">{r.messaggio}</p>
+              </div>
+            ))}
           </div>
-          <div className="bg-[#141d29] border border-white/10 rounded-xl p-5 opacity-50">
-            <p className="font-semibold mb-1">Messaggi</p>
-            <p className="text-white/40 text-sm">Presto disponibile</p>
-          </div>
+        </div>
+
+        <div className="bg-[#141d29] border border-white/10 rounded-xl p-5 opacity-50">
+          <p className="font-semibold mb-1">Messaggi</p>
+          <p className="text-white/40 text-sm">Presto disponibile</p>
         </div>
       </div>
     </main>

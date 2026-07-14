@@ -10,6 +10,7 @@ export default function DashboardSponsor() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [profilo, setProfilo] = useState(null);
+  const [richieste, setRichieste] = useState([]);
   const [caricando, setCaricando] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [salvato, setSalvato] = useState(false);
@@ -32,8 +33,22 @@ export default function DashboardSponsor() {
           setProfilo(data.user);
           setCaricando(false);
         });
+      fetch("/api/richieste")
+        .then((r) => r.json())
+        .then((data) => setRichieste(data.richieste || []));
     }
   }, [status, session, router]);
+
+  async function gestisciRichiesta(id, stato) {
+    await fetch(`/api/richieste/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ stato }),
+    });
+    setRichieste((prev) =>
+      prev.map((r) => (r._id === id ? { ...r, stato } : r))
+    );
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -220,16 +235,59 @@ export default function DashboardSponsor() {
           </form>
         </div>
 
-        {/* Prossime funzionalità */}
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div className="bg-[#141d29] border border-white/10 rounded-xl p-5 opacity-50">
-            <p className="font-semibold mb-1">Richieste ricevute</p>
-            <p className="text-white/40 text-sm">Presto disponibile</p>
+        {/* Richieste ricevute */}
+        <div className="bg-[#141d29] border border-white/10 rounded-xl p-6 mb-4">
+          <h2 className="font-bold text-lg mb-4">Richieste ricevute</h2>
+          {richieste.length === 0 && (
+            <p className="text-white/40 text-sm">
+              Nessuna richiesta ricevuta per ora.
+            </p>
+          )}
+          <div className="space-y-3">
+            {richieste.map((r) => (
+              <div
+                key={r._id}
+                className="border border-white/10 rounded-lg p-4"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-semibold">{r.sponseeNome}</span>
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full capitalize ${
+                      r.stato === "approvata"
+                        ? "bg-green-500/10 text-green-400"
+                        : r.stato === "rifiutata"
+                        ? "bg-red-500/10 text-red-400"
+                        : "bg-yellow-500/10 text-yellow-400"
+                    }`}
+                  >
+                    {r.stato}
+                  </span>
+                </div>
+                <p className="text-white/50 text-sm mb-3">{r.messaggio}</p>
+                {r.stato === "in attesa" && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => gestisciRichiesta(r._id, "approvata")}
+                      className="flex-1 bg-green-500/10 hover:bg-green-500/20 text-green-400 py-2 rounded-lg text-sm font-semibold transition"
+                    >
+                      Approva
+                    </button>
+                    <button
+                      onClick={() => gestisciRichiesta(r._id, "rifiutata")}
+                      className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 py-2 rounded-lg text-sm font-semibold transition"
+                    >
+                      Rifiuta
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
-          <div className="bg-[#141d29] border border-white/10 rounded-xl p-5 opacity-50">
-            <p className="font-semibold mb-1">Messaggi</p>
-            <p className="text-white/40 text-sm">Presto disponibile</p>
-          </div>
+        </div>
+
+        <div className="bg-[#141d29] border border-white/10 rounded-xl p-5 opacity-50">
+          <p className="font-semibold mb-1">Messaggi</p>
+          <p className="text-white/40 text-sm">Presto disponibile</p>
         </div>
       </div>
     </main>
