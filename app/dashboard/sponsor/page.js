@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Navbar from "../../components/Navbar";
+import CustomSelect from "../../components/CustomSelect";
 
 export default function DashboardSponsor() {
   const { data: session, status } = useSession();
@@ -103,23 +104,20 @@ export default function DashboardSponsor() {
               <label className="block text-sm mb-2 text-white/70">
                 Categoria
               </label>
-              <select
+              <CustomSelect
                 value={profilo?.categoria || ""}
-                onChange={(e) =>
-                  setProfilo({ ...profilo, categoria: e.target.value })
-                }
-                style={{ colorScheme: "dark" }}
-                className="w-full bg-white/5 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#f4520a]"
-              >
-                <option value="">Seleziona categoria</option>
-                <option value="tecnologia">Tecnologia</option>
-                <option value="sport">Sport</option>
-                <option value="musica">Musica</option>
-                <option value="cultura">Cultura</option>
-                <option value="cibo">Cibo e bevande</option>
-                <option value="moda">Moda</option>
-                <option value="altro">Altro</option>
-              </select>
+                onChange={(v) => setProfilo({ ...profilo, categoria: v })}
+                placeholder="Seleziona categoria"
+                options={[
+                  { value: "tecnologia", label: "Tecnologia" },
+                  { value: "sport", label: "Sport" },
+                  { value: "musica", label: "Musica" },
+                  { value: "cultura", label: "Cultura" },
+                  { value: "cibo", label: "Cibo e bevande" },
+                  { value: "moda", label: "Moda" },
+                  { value: "altro", label: "Altro" },
+                ]}
+              />
             </div>
 
             <div>
