@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
+import { inviaNotificaNuovaRichiesta } from "@/lib/email";
 
 export async function GET() {
   const session = await auth();
@@ -55,7 +56,7 @@ export async function POST(request) {
     return Response.json({ error: "Sponsor non trovato" }, { status: 404 });
   }
 
-  await db.collection("richieste").insertOne({
+  const nuovaRichiesta = {
     sponsorId: new ObjectId(sponsorId),
     sponseeId: new ObjectId(session.user.id),
     sponsorNome: sponsor.nome,
@@ -63,7 +64,23 @@ export async function POST(request) {
     messaggio,
     stato: "in attesa",
     createdAt: new Date(),
-  });
+  };
+
+  const risultato = await db
+    .collection("richieste")
+    .insertOne(nuovaRichiesta);
+
+  try {
+    await inviaNotificaNuovaRichiesta(
+      sponsor.email,
+      sponsor.nome,
+      session.user.name,
+      messaggio,
+      risultato.insertedId
+    );
+  } catch (err) {
+    console.error("Errore notifica email nuova richiesta:", err);
+  }
 
   return Response.json({ success: true });
 }

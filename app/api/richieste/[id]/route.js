@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
+import { inviaNotificaRispostaRichiesta } from "@/lib/email";
 
 export async function GET(request, { params }) {
   const session = await auth();
@@ -75,6 +76,23 @@ export async function PATCH(request, { params }) {
   await db
     .collection("richieste")
     .updateOne({ _id: new ObjectId(id) }, { $set: { stato } });
+
+  try {
+    const sponsee = await db
+      .collection("users")
+      .findOne({ _id: richiesta.sponseeId });
+    if (sponsee) {
+      await inviaNotificaRispostaRichiesta(
+        sponsee.email,
+        sponsee.nome,
+        richiesta.sponsorNome,
+        stato,
+        id
+      );
+    }
+  } catch (err) {
+    console.error("Errore notifica email risposta richiesta:", err);
+  }
 
   return Response.json({ success: true });
 }
